@@ -55,6 +55,7 @@ wordsData <- na.roughfix(wordsData);
 trainIndexValue=sample(1:nrow(trainData),nrow(trainData)/2)
 testData=trainData[-trainIndexValue,]
 trainData=trainData[trainIndexValue,]
+
 trainfeatsData <- mergeData(trainData)[,-4]; #merging words users and train data
 
 testfeatsData <- mergeData(testData); #merging words, users and test data
@@ -93,10 +94,9 @@ lmbyartistpred <- function (train, test, ratings) {
   for (i in isf) {
     test[,i] <- as.integer(test[,i]);
   } 
-  #print(sapply(train, class))
+  print(sapply(train, class))
   #print(sapply(test, class))
   train$Rating <- ratings;
-
   #splitting by artist
   lms <- dlply(train, .(Artist), function (x) {
     rating <- x$Rating;
@@ -153,14 +153,14 @@ save.pred <- function (name, pred) {
 #Run different models and write the predictions to appropriate files under predictions folder.
 save.pred('lm', cross.val(lmpred, 10, trainfeatsData, testfeatsData, ratingsData));
 save.pred('lmbya', cross.val(lmbyartistpred, 10, trainfeatsData, testfeatsData, ratingsData));
+save.pred('gbm', cross.val(gbmpred, 10, trainfeatsData, testfeatsData, ratingsData));
 
 #interpreting results
 interpret <- function(filename){
   predicted=read.csv(paste("predictions/",filename,sep=""),header=T)
   predicted=as.numeric(predicted[,1])
   rmse_error=rmseError(predicted,testData$Rating)
-
 }
 
-files=c("lm.csv", "lmbya.csv")
+files=c("lm.csv", "lmbya.csv", "gbm.csv")
 lapply(files, interpret)
