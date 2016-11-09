@@ -146,7 +146,6 @@ gbmpred <- function (train, test, ratings) {
 save.pred <- function (name, pred) {
   cat('Estimated RMSE: ', rmseError(ratingsData, pred$cv), '\n');
   filename <- paste('predictions/', name, '.csv', sep='');  
-  print(filename)
   write.csv(pred$pred, filename, row.names=F, quote=F);
   write.csv(pred$cv, paste(filename, '.cross', sep=''), row.names=F, quote=F);
 }
@@ -160,7 +159,7 @@ interpret <- function(filename){
   predicted=read.csv(paste("predictions/",filename,sep=""),header=T)
   predicted=as.numeric(predicted[,1])
   rmse_error=rmseError(predicted,testData$Rating)
-  coco = cor(testData$Rating, predicted)
+
 }
 
 files=c("lm.csv", "lmbya.csv")
