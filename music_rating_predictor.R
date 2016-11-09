@@ -11,6 +11,7 @@ usersData <- read.csv('data/users.csv');
 
 library(randomForest)
 
+# clean times
 cleantimes <- function (t) {
   t <- as.character(t)
   t[t=='Less than an hour'] <- '.5';
@@ -77,41 +78,6 @@ trainfeatsData <- cleanedData[[1]];
 testfeatsData <- cleanedData[[2]];
 ratingsData <- cleanedData[[3]];
 
-#random forest
-rfpred <- function (trainfeats, testfeats, ratings) {    
-  rf <- randomForest(trainfeats, ratings, do.trace=T, sampsize=50000, ntree=100);
-  
-  #pruning the 40 most important attributes using random forest
-  attr= importance(rf)
-  ordered_attr=attr[order(attr),]
-  pruned=ordered_attr[(length(ordered_attr)-40):length(ordered_attr)]
-  
-  #rerunning random forest with 40 important attributes
-  rf <- randomForest(trainfeats[,names(pruned)], ratings, do.trace=T, sampsize=50000, ntree=100);
-  pred <- predict(rf, testfeats);     #predicting test data ratings with the model
-  cv <- rf$predicted;                 #saving training predicted values
-  
-  return(list(pred=pred, cv=cv));
-}
-
-
-#random forest applied to each artist.
-rfbyartistpred <- function (train, test, ratings) {
-  train$Rating <- ratings;
-  #splitting dataset on basis of artist and building random forest for each such data set
-  rfs <- dlply(train, .(Artist), function (x) {
-    rating <- x$Rating;
-    x$Rating <- NULL;
-    return(randomForest(x, rating, ntree=100, nodesize=10, do.trace=F));
-  }, .progress='text');
-  pred <- numeric(nrow(test));
-  for (i in 0:max(test$Artist)) {
-    ids <- test$Artist == i;
-    if (sum(ids) > 0) pred[ids] <- predict(rfs[[as.character(i)]], test[ids,]);
-  }
-  return(list(pred=pred));
-}
-
 #Linear model applied to each artist.
 lmbyartistpred <- function (train, test, ratings) {
   
@@ -176,17 +142,6 @@ gbmpred <- function (train, test, ratings) {
   return(list(pred=pred))
 }
 
-#running random forest based on only the questions answered. - to be removed as we are 
-#pruning the tree using rf.
-rfqpred <- function (train, test, ratings) {
-  train <- train[,c(2,3,96:114)];
-  test <- test[,c(2,3,96:114)];
-  rf <- randomForest(train, ratings, do.trace=T, sampsize=50000, ntree=200);
-  pred <- predict(rf, test);
-  cv <- rf$predicted;
-  return(list(pred=pred, cv=cv));
-}
-
 #function to write predicted values to a file.
 save.pred <- function (name, pred) {
   cat('Estimated RMSE: ', rmseError(ratingsData, pred$cv), '\n');
@@ -205,6 +160,7 @@ interpret <- function(filename){
   predicted=read.csv(paste("predictions/",filename,sep=""),header=T)
   predicted=as.numeric(predicted[,1])
   rmse_error=rmseError(predicted,testData$Rating)
+  coco = cor(testData$Rating, predicted)
 }
 
 files=c("lm.csv", "lmbya.csv")
