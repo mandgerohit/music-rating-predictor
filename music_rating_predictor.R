@@ -58,7 +58,7 @@ trainData=trainData[trainIndexValue,]
 
 trainfeatsData <- mergeData(trainData)[,-4]; #merging words users and train data
 
-testfeatsData <- mergeData(testData); #merging words, users and test data
+testfeatsData <- mergeData(testData)[,-4]; #merging words, users and test data
 
 #creating a list consisting of training, test and ratings of training data.
 cleanedData <- list(trainfeatsData=trainfeatsData, testfeatsData=testfeatsData, ratingsData=trainData$Rating)
@@ -86,22 +86,18 @@ lmbyartistpred <- function (train, test, ratings) {
   isf <- which(sapply(1:ncol(train), function (n) is.factor(train[,n])));
   
   for (i in isf) {
-    train[,i] <- as.integer(train[,i]);
+    train[,i] <- as.numeric(train[,i]);
+    test[,i] <- as.numeric(test[,i]);
   } 
   
-  isf <- which(sapply(1:ncol(test), function (n) is.factor(test[,n])));
-  
-  for (i in isf) {
-    test[,i] <- as.integer(test[,i]);
-  } 
-  print(sapply(train, class))
+  #print(sapply(train, class))
   #print(sapply(test, class))
   train$Rating <- ratings;
   #splitting by artist
   lms <- dlply(train, .(Artist), function (x) {
     rating <- x$Rating;
     x$Rating <- NULL;
-    return(lm(rating ~ ., data=x, na.action = "na.exclude"));
+    return(lm(rating ~ ., data=x));
   }, .progress='text');
   pred <- numeric(nrow(test));
   for (i in 0:max(test$Artist)) {
@@ -156,6 +152,7 @@ save.pred('lmbya', cross.val(lmbyartistpred, 10, trainfeatsData, testfeatsData, 
 save.pred('gbm', cross.val(gbmpred, 10, trainfeatsData, testfeatsData, ratingsData));
 
 #interpreting results
+
 interpret <- function(filename){
   predicted=read.csv(paste("predictions/",filename,sep=""),header=T)
   predicted=as.numeric(predicted[,1])
