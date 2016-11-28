@@ -22,7 +22,6 @@ cleantimes <- function (t) {
 usersData$LIST_OWN <- cleantimes(usersData$LIST_OWN);
 usersData$LIST_BACK <- cleantimes(usersData$LIST_BACK);
 
-
 # function to merge train\test data, words and users.
 mergeData <- function (dataSet) {
   dataSet$RowID <- 1:nrow(dataSet);
@@ -138,6 +137,23 @@ gbmpred <- function (train, test, ratings) {
   return(list(pred=pred))
 }
 
+#random forest applied to each artist.
+rfbyartistpred <- function (train, test, ratings) {
+  train$Rating <- ratings;
+  #splitting dataset on basis of artist and building random forest for each such data set
+  rfs <- dlply(train, .(Artist), function (x) {
+    rating <- x$Rating;
+    x$Rating <- NULL;
+    return(randomForest(x, rating, ntree=100, nodesize=10, do.trace=F));
+  }, .progress='text');
+  pred <- numeric(nrow(test));
+  for (i in 0:max(test$Artist)) {
+    ids <- test$Artist == i;
+    if (sum(ids) > 0) pred[ids] <- predict(rfs[[as.character(i)]], test[ids,]);
+  }
+  return(list(pred=pred));
+}
+
 #function to write predicted values to a file.
 save.pred <- function (name, pred) {
   cat('Estimated RMSE: ', rmseError(ratingsData, pred$cv), '\n');
@@ -149,7 +165,9 @@ save.pred <- function (name, pred) {
 #Run different models and write the predictions to appropriate files under predictions folder.
 save.pred('lm', cross.val(lmpred, 10, trainfeatsData, testfeatsData, ratingsData));
 save.pred('lmbya', cross.val(lmbyartistpred, 10, trainfeatsData, testfeatsData, ratingsData));
-save.pred('gbm', cross.val(gbmpred, 10, trainfeatsData, testfeatsData, ratingsData));
+#save.pred('gbm', cross.val(gbmpred, 10, trainfeatsData, testfeatsData, ratingsData));
+
+save.pred('rfbya', cross.val(rfbyartistpred, 10, trainfeatsData, testfeatsData, ratingsData));
 
 #interpreting results
 
@@ -159,5 +177,5 @@ interpret <- function(filename){
   rmse_error=rmseError(predicted,testData$Rating)
 }
 
-files=c("lm.csv", "lmbya.csv", "gbm.csv")
+files=c("lm.csv", "lmbya.csv", "gbm.csv", "rfbya.csv")
 lapply(files, interpret)
