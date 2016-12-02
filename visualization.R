@@ -5,7 +5,7 @@ require(Rtools)
 install.packages("dendextend")
 library(dendextend)
 
-setwd("E:/Dropbox/NCSU CS/CSC 522 ALDA/Homeworks/music-rating-predictor")
+setwd("D:/music-rating-predictor")
 
 # WordCloud for Male vs Female respondents with respect to the kind of words they use.
 men=trainfeatsData[trainfeatsData$GENDER=="Male",]
