@@ -4,7 +4,6 @@
 #install.packages("wordcloud")
 
 setwd("D:/music-rating-predictor")
-setwd("E:/Dropbox/NCSU CS/CSC 522 ALDA/Homeworks/music-rating-predictor")
 trainData <- read.csv('data/train.csv');
 testData <- read.csv('data/test.csv');
 wordsData <- read.csv('data/words.csv');
@@ -183,7 +182,7 @@ save.pred <- function (name, pred) {
 #Run different models and write the predictions to appropriate files under predictions folder.
 save.pred('lm', cross.val(lmpred, 10, trainfeatsData, testfeatsData, ratingsData));
 save.pred('lmbya', cross.val(lmbyartistpred, 10, trainfeatsData, testfeatsData, ratingsData));
-#save.pred('gbm', cross.val(gbmpred, 10, trainfeatsData, testfeatsData, ratingsData));
+save.pred('gbm', cross.val(gbmpred, 10, trainfeatsData, testfeatsData, ratingsData));
 save.pred('rf', rfpred(trainfeatsData, testfeatsData, ratingsData));
 save.pred('rfbya', cross.val(rfbyartistpred, 10, trainfeatsData, testfeatsData, ratingsData));
 
