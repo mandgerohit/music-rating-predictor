@@ -138,6 +138,23 @@ gbmpred <- function (train, test, ratings) {
   return(list(pred=pred))
 }
 
+#random forest
+rfpred <- function (trainfeats, testfeats, ratings) {    
+  rf <- randomForest(trainfeats, ratings, do.trace=T, sampsize=50000, ntree=100);
+  
+  #pruning the 40 most important attributes using random forest
+  attr= importance(rf)
+  ordered_attr=attr[order(attr),]
+  pruned=ordered_attr[(length(ordered_attr)-40):length(ordered_attr)]
+  
+  #rerunning random forest with 40 important attributes
+  rf <- randomForest(trainfeats[,names(pruned)], ratings, do.trace=T, sampsize=50000, ntree=100);
+  pred <- predict(rf, testfeats);     #predicting test data ratings with the model
+  cv <- rf$predicted;                 #saving training predicted values
+  
+  return(list(pred=pred, cv=cv));
+}
+
 #random forest applied to each artist.
 rfbyartistpred <- function (train, test, ratings) {
   train$Rating <- ratings;
@@ -167,7 +184,7 @@ save.pred <- function (name, pred) {
 save.pred('lm', cross.val(lmpred, 10, trainfeatsData, testfeatsData, ratingsData));
 save.pred('lmbya', cross.val(lmbyartistpred, 10, trainfeatsData, testfeatsData, ratingsData));
 #save.pred('gbm', cross.val(gbmpred, 10, trainfeatsData, testfeatsData, ratingsData));
-
+save.pred('rf', rfpred(trainfeatsData, testfeatsData, ratingsData));
 save.pred('rfbya', cross.val(rfbyartistpred, 10, trainfeatsData, testfeatsData, ratingsData));
 
 #interpreting results
@@ -178,5 +195,5 @@ interpret <- function(filename){
   rmse_error=rmseError(predicted,testData$Rating)
 }
 
-files=c("lm.csv", "lmbya.csv", "gbm.csv", "rfbya.csv")
+files=c("lm.csv", "lmbya.csv", "gbm.csv", "rf.csv", "rfbya.csv")
 lapply(files, interpret)
