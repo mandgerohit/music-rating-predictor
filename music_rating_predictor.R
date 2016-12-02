@@ -4,6 +4,7 @@
 #install.packages("wordcloud")
 
 setwd("D:/music-rating-predictor")
+setwd("E:/Dropbox/NCSU CS/CSC 522 ALDA/Homeworks/music-rating-predictor")
 trainData <- read.csv('data/train.csv');
 testData <- read.csv('data/test.csv');
 wordsData <- read.csv('data/words.csv');
@@ -55,9 +56,9 @@ trainIndexValue=sample(1:nrow(trainData),nrow(trainData)/2)
 testData=trainData[-trainIndexValue,]
 trainData=trainData[trainIndexValue,]
 
-trainfeatsData <- mergeData(trainData)[,-4]; #merging words users and train data
+trainfeatsData <- mergeData(trainData); #merging words users and train data
 
-testfeatsData <- mergeData(testData)[,-4]; #merging words, users and test data
+testfeatsData <- mergeData(testData); #merging words, users and test data
 
 #creating a list consisting of training, test and ratings of training data.
 cleanedData <- list(trainfeatsData=trainfeatsData, testfeatsData=testfeatsData, ratingsData=trainData$Rating)
